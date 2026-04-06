@@ -11,6 +11,7 @@ $members = $expenseFormContext['members'];
 $identifier = (string) ($membership['household_slug'] ?? $membership['household_id']);
 $isEdit = $formMode === 'edit';
 $expenseId = (int) ($expense['id'] ?? 0);
+$prefillExpenseGroupId = (string) ($prefillExpenseGroupId ?? '');
 $activeCurrency = is_array($activeHousehold ?? null) ? (string) ($activeHousehold['base_currency'] ?? 'EUR') : 'EUR';
 $currentCurrency = old('currency', (string) ($expense['currency'] ?? $activeCurrency));
 $currentSplitMethod = old('split_method', (string) ($expense['split_method'] ?? 'equal'));
@@ -125,11 +126,17 @@ $oldSplits = old('splits');
                 <select class="<?= esc(field_error_class($formErrors, 'expense_group_id')) ?>" name="expense_group_id">
                     <option value=""><?= esc(ui_text('expense.label.group.general')) ?></option>
                     <?php foreach ($expenseGroups as $group): ?>
-                        <option value="<?= esc((string) $group['id']) ?>" <?= (string) old('expense_group_id', (string) ($expense['expense_group_id'] ?? '')) === (string) $group['id'] ? 'selected' : '' ?>>
+                        <option value="<?= esc((string) $group['id']) ?>" <?= (string) old('expense_group_id', (string) ($expense['expense_group_id'] ?? $prefillExpenseGroupId)) === (string) $group['id'] ? 'selected' : '' ?>>
                             <?= esc((string) $group['name']) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
+                <small class="field-hint">
+                    <?= esc(ui_locale() === 'it'
+                        ? 'Puoi creare, aggiornare o cancellare i gruppi direttamente nella pagina Spese.'
+                        : 'You can create, update or delete groups directly from the Expenses page.') ?>
+                    <a href="<?= route_url('expenses.index', $identifier) ?>#expense-groups"><?= esc(ui_locale() === 'it' ? 'Apri gruppi spesa' : 'Open expense groups') ?></a>.
+                </small>
             </label>
 
             <label class="field">

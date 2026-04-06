@@ -84,6 +84,7 @@ final class ExpenseController extends BaseController
             'pageTitle' => 'Create Expense | FamilyJam',
             'expenseFormContext' => $context,
             'formMode' => 'create',
+            'prefillExpenseGroupId' => $this->request->getGet('expense_group_id'),
         ]);
     }
 
@@ -212,5 +213,80 @@ final class ExpenseController extends BaseController
         return $this->response
             ->download($path, null)
             ->setFileName((string) $context['attachment']['original_name']);
+    }
+
+    public function createGroup(string $identifier): RedirectResponse
+    {
+        helper('ui');
+
+        if ($this->currentUserId === null) {
+            return redirect()->to(route_url('auth.login'));
+        }
+
+        try {
+            service('householdManager')->createExpenseGroup($this->currentUserId, $identifier, [
+                'name' => $this->request->getPost('name'),
+                'description' => $this->request->getPost('description'),
+                'color' => $this->request->getPost('color'),
+                'member_user_ids' => $this->request->getPost('member_user_ids') ?? [],
+            ]);
+        } catch (DomainException $exception) {
+            return redirect()
+                ->to(route_url('expenses.index', $identifier) . '#expense-groups')
+                ->withInput()
+                ->with('error', $exception->getMessage());
+        }
+
+        return redirect()
+            ->to(route_url('expenses.index', $identifier) . '#expense-groups')
+            ->with('success', ui_locale() === 'it' ? 'Gruppo spesa creato.' : 'Expense group created.');
+    }
+
+    public function updateGroup(string $identifier, int $groupId): RedirectResponse
+    {
+        helper('ui');
+
+        if ($this->currentUserId === null) {
+            return redirect()->to(route_url('auth.login'));
+        }
+
+        try {
+            service('householdManager')->updateExpenseGroup($this->currentUserId, $identifier, $groupId, [
+                'name' => $this->request->getPost('name'),
+                'description' => $this->request->getPost('description'),
+                'color' => $this->request->getPost('color'),
+                'member_user_ids' => $this->request->getPost('member_user_ids') ?? [],
+            ]);
+        } catch (DomainException $exception) {
+            return redirect()
+                ->to(route_url('expenses.index', $identifier) . '#expense-groups')
+                ->withInput()
+                ->with('error', $exception->getMessage());
+        }
+
+        return redirect()
+            ->to(route_url('expenses.index', $identifier) . '#expense-groups')
+            ->with('success', ui_locale() === 'it' ? 'Gruppo spesa aggiornato.' : 'Expense group updated.');
+    }
+
+    public function deleteGroup(string $identifier, int $groupId): RedirectResponse
+    {
+        helper('ui');
+
+        if ($this->currentUserId === null) {
+            return redirect()->to(route_url('auth.login'));
+        }
+
+        try {
+            service('householdManager')->deleteExpenseGroup($this->currentUserId, $identifier, $groupId);
+        } catch (DomainException $exception) {
+            return redirect()
+                ->to(route_url('expenses.index', $identifier) . '#expense-groups')
+                ->with('error', $exception->getMessage());
+        }
+
+        return redirect()
+            ->to(route_url('expenses.index', $identifier) . '#expense-groups')
+            ->with('success', ui_locale() === 'it' ? 'Gruppo spesa eliminato.' : 'Expense group deleted.');
     }
 }

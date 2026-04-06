@@ -86,8 +86,14 @@ $identifier = (string) ($household['slug'] ?? $membership['household_slug'] ?? $
             <div class="row">
                 <?php foreach ($balanceContext['groupBalances'] as $group): ?>
                     <?php
+                    $groupCurrencyBuckets = is_array($group['currencies'] ?? null)
+                        ? $group['currencies']
+                        : [];
+                    $groupNetBalances = is_array($group['netBalances'] ?? null)
+                        ? $group['netBalances']
+                        : [];
                     $personalRows = [];
-                    foreach (($group['currencies'] ?? []) as $currencyCode => $groupRows) {
+                    foreach ($groupNetBalances as $currencyCode => $groupRows) {
                         foreach ($groupRows as $groupRow) {
                             if ((int) $groupRow['user_id'] === (int) ($currentUserId ?? 0)) {
                                 $personalRows[] = [
@@ -106,7 +112,7 @@ $identifier = (string) ($household['slug'] ?? $membership['household_slug'] ?? $
                             </span>
                             <div class="info-box-content">
                                 <span class="info-box-text"><?= esc((string) $group['group_name']) ?></span>
-                                <span class="text-muted text-sm"><?= esc((string) count($group['currencies'])) ?> <?= esc(ui_locale() === 'it' ? 'valute' : 'currencies') ?></span>
+                                <span class="text-muted text-sm"><?= esc((string) count($groupCurrencyBuckets !== [] ? $groupCurrencyBuckets : $groupNetBalances)) ?> <?= esc(ui_locale() === 'it' ? 'valute' : 'currencies') ?></span>
                                 <?php foreach ($personalRows as $personalRow): ?>
                                     <span class="d-block text-sm">
                                         <?= esc(balance_direction_label((string) $personalRow['direction'])) ?>
@@ -230,7 +236,7 @@ $identifier = (string) ($household['slug'] ?? $membership['household_slug'] ?? $
         </div>
         <div class="card-body">
             <?php foreach ($balanceContext['groupBalances'] as $group): ?>
-                <div class="card card-outline mb-4">
+                <div class="card card-outline mb-4" id="expense-group-<?= esc((string) ($group['group_id'] ?? 'general')) ?>">
                     <div class="card-header">
                         <h3 class="card-title">
                             <i class="fas fa-folder-open mr-2"<?= ! empty($group['group_color']) ? ' style="color:' . esc((string) $group['group_color']) . '"' : '' ?>></i>

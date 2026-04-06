@@ -11,7 +11,7 @@
     </div>
 </section>
 
-<section class="panel">
+<section class="panel" id="expense-groups">
     <div class="section-heading">
         <div>
             <p class="section-heading__eyebrow"><?= esc(ui_locale() === 'it' ? 'Configurazione' : 'Configuration') ?></p>

@@ -9,6 +9,7 @@ $expenses = $expenseListContext['expenses'];
 $categories = $expenseListContext['categories'];
 $expenseGroups = $expenseListContext['expenseGroups'];
 $members = $expenseListContext['members'];
+$availableMembers = $expenseListContext['availableMembers'] ?? [];
 $identifier = (string) ($membership['household_slug'] ?? $membership['household_id']);
 $activeCurrency = is_array($activeHousehold ?? null) ? (string) ($activeHousehold['base_currency'] ?? 'EUR') : 'EUR';
 ?>
@@ -19,6 +20,9 @@ $activeCurrency = is_array($activeHousehold ?? null) ? (string) ($activeHousehol
     </div>
     <div class="col-sm-6">
         <div class="float-sm-right">
+            <a class="btn btn-default mr-2" href="<?= route_url('expenses.index', $identifier) ?>#expense-groups">
+                <i class="fas fa-layer-group mr-1"></i><?= esc(ui_locale() === 'it' ? 'Gruppi spesa' : 'Expense groups') ?>
+            </a>
             <?php if ($canCreateExpense): ?>
                 <a class="btn btn-primary" href="<?= route_url('expenses.create', $identifier) ?>">
                     <i class="fas fa-plus mr-1"></i><?= esc(ui_locale() === 'it' ? 'Nuova spesa' : 'New expense') ?>
@@ -138,6 +142,172 @@ $activeCurrency = is_array($activeHousehold ?? null) ? (string) ($activeHousehol
             <a class="btn btn-default ml-2" href="<?= route_url('expenses.index', $identifier) ?>"><?= esc(ui_text('common.reset')) ?></a>
         </div>
     </form>
+</div>
+
+<div class="card card-outline card-secondary" id="expense-groups">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-layer-group mr-2"></i><?= esc(ui_locale() === 'it' ? 'Gruppi spesa' : 'Expense groups') ?></h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card card-outline card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title"><?= esc(ui_locale() === 'it' ? 'Nuovo gruppo' : 'New group') ?></h3>
+                    </div>
+                    <form method="post" action="<?= route_url('expenses.groups.create', $identifier) ?>">
+                        <?= csrf_field() ?>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label><?= esc(ui_locale() === 'it' ? 'Nome gruppo' : 'Group name') ?></label>
+                                <input class="form-control" type="text" name="name" value="<?= esc((string) old('name', '')) ?>" required>
+                            </div>
+                            <div class="form-group">
+                                <label><?= esc(ui_locale() === 'it' ? 'Descrizione' : 'Description') ?></label>
+                                <input class="form-control" type="text" name="description" value="<?= esc((string) old('description', '')) ?>">
+                            </div>
+                            <div class="form-group">
+                                <label><?= esc(ui_locale() === 'it' ? 'Colore' : 'Color') ?></label>
+                                <input class="form-control" type="color" name="color" value="<?= esc((string) old('color', '#17a2b8')) ?>">
+                            </div>
+                            <div class="form-group">
+                                <label><?= esc(ui_locale() === 'it' ? 'Membri del gruppo' : 'Group members') ?></label>
+                                <div class="d-flex flex-column">
+                                    <?php $selectedMembers = array_map('strval', (array) (old('member_user_ids') ?? [])); ?>
+                                    <?php foreach ($availableMembers as $member): ?>
+                                        <label class="mb-2 font-weight-normal">
+                                            <input type="checkbox" name="member_user_ids[]" value="<?= esc((string) $member['user_id']) ?>" <?= in_array((string) $member['user_id'], $selectedMembers, true) ? 'checked' : '' ?>>
+                                            <span class="ml-2"><?= esc((string) ($member['display_name'] ?? $member['email'])) ?></span>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-plus mr-1"></i><?= esc(ui_locale() === 'it' ? 'Crea gruppo' : 'Create group') ?>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <?php if ($expenseGroups === []): ?>
+                    <div class="callout callout-info mb-0">
+                        <h5><?= esc(ui_locale() === 'it' ? 'Nessun gruppo spesa' : 'No expense groups yet') ?></h5>
+                        <p><?= esc(ui_locale() === 'it'
+                            ? 'Crea gruppi come Utenze, Spesa o Viaggio e inserisci le spese direttamente al loro interno.'
+                            : 'Create groups such as Utilities, Groceries or Travel and file expenses directly inside them.') ?></p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($expenseGroups as $group): ?>
+                        <div class="card card-outline mb-3">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    <i class="fas fa-folder-open mr-2" style="color: <?= esc((string) ($group['color'] ?? '#6c757d')) ?>;"></i>
+                                    <?= esc((string) $group['name']) ?>
+                                </h3>
+                                <div class="card-tools">
+                                    <a class="btn btn-tool" href="<?= route_url('expenses.index', $identifier) ?>?expense_group_id=<?= esc((string) $group['id']) ?>">
+                                        <i class="fas fa-receipt"></i>
+                                    </a>
+                                    <a class="btn btn-tool" href="<?= route_url('balances.overview', $identifier) ?>#expense-group-<?= esc((string) $group['id']) ?>">
+                                        <i class="fas fa-balance-scale"></i>
+                                    </a>
+                                    <?php if (has_permission('add_settlement', $activeHousehold, $currentUserId)): ?>
+                                        <a class="btn btn-tool" href="<?= route_url('settlements.create', $identifier) ?>?expense_group_id=<?= esc((string) $group['id']) ?>">
+                                            <i class="fas fa-hand-holding-usd"></i>
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <?php if (! empty($group['description'])): ?>
+                                    <p class="text-muted"><?= esc((string) $group['description']) ?></p>
+                                <?php endif; ?>
+                                <div class="mb-3">
+                                    <?php foreach (($group['members'] ?? []) as $member): ?>
+                                        <span class="badge badge-light border mr-1 mb-1"><?= esc((string) ($member['display_name'] ?? $member['email'])) ?></span>
+                                    <?php endforeach; ?>
+                                </div>
+                                <div class="mb-3">
+                                    <?php if ($canCreateExpense): ?>
+                                        <a class="btn btn-sm btn-primary mr-2" href="<?= route_url('expenses.create', $identifier) ?>?expense_group_id=<?= esc((string) $group['id']) ?>">
+                                            <i class="fas fa-plus mr-1"></i><?= esc(ui_locale() === 'it' ? 'Nuova spesa nel gruppo' : 'Add expense to group') ?>
+                                        </a>
+                                    <?php endif; ?>
+                                    <a class="btn btn-sm btn-default mr-2" href="<?= route_url('expenses.index', $identifier) ?>?expense_group_id=<?= esc((string) $group['id']) ?>">
+                                        <i class="fas fa-list mr-1"></i><?= esc(ui_locale() === 'it' ? 'Vedi spese del gruppo' : 'View group expenses') ?>
+                                    </a>
+                                    <a class="btn btn-sm btn-default mr-2" href="<?= route_url('balances.overview', $identifier) ?>#expense-group-<?= esc((string) $group['id']) ?>">
+                                        <i class="fas fa-wallet mr-1"></i><?= esc(ui_locale() === 'it' ? 'Saldi del gruppo' : 'Group balances') ?>
+                                    </a>
+                                    <a class="btn btn-sm btn-success" href="<?= route_url('balances.overview', $identifier) ?>#expense-group-<?= esc((string) $group['id']) ?>">
+                                        <i class="fas fa-check-circle mr-1"></i><?= esc(ui_locale() === 'it' ? 'Pareggia saldi nel gruppo' : 'Open balances and settle') ?>
+                                    </a>
+                                </div>
+
+                                <form method="post" action="<?= route_url('expenses.groups.update', $identifier, $group['id']) ?>">
+                                    <?= csrf_field() ?>
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label><?= esc(ui_locale() === 'it' ? 'Nome' : 'Name') ?></label>
+                                                <input class="form-control" type="text" name="name" value="<?= esc((string) $group['name']) ?>" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <div class="form-group">
+                                                <label><?= esc(ui_locale() === 'it' ? 'Descrizione' : 'Description') ?></label>
+                                                <input class="form-control" type="text" name="description" value="<?= esc((string) ($group['description'] ?? '')) ?>">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                <label><?= esc(ui_locale() === 'it' ? 'Colore' : 'Color') ?></label>
+                                                <input class="form-control" type="color" name="color" value="<?= esc((string) ($group['color'] ?? '#17a2b8')) ?>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label><?= esc(ui_locale() === 'it' ? 'Membri del gruppo' : 'Group members') ?></label>
+                                        <div class="row">
+                                            <?php $groupMemberIds = array_map(static fn ($value): int => (int) $value, $group['member_user_ids'] ?? []); ?>
+                                            <?php foreach ($availableMembers as $member): ?>
+                                                <div class="col-md-6 col-xl-4">
+                                                    <label class="mb-2 font-weight-normal">
+                                                        <input
+                                                            type="checkbox"
+                                                            name="member_user_ids[]"
+                                                            value="<?= esc((string) $member['user_id']) ?>"
+                                                            <?= in_array((int) $member['user_id'], $groupMemberIds, true) ? 'checked' : '' ?>
+                                                        >
+                                                        <span class="ml-2"><?= esc((string) ($member['display_name'] ?? $member['email'])) ?></span>
+                                                    </label>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex flex-wrap align-items-center">
+                                        <button class="btn btn-primary btn-sm mr-2 mb-2" type="submit">
+                                            <i class="fas fa-save mr-1"></i><?= esc(ui_locale() === 'it' ? 'Aggiorna gruppo' : 'Update group') ?>
+                                        </button>
+                                    </div>
+                                </form>
+                                <form method="post" action="<?= route_url('expenses.groups.delete', $identifier, $group['id']) ?>" class="mb-2">
+                                    <?= csrf_field() ?>
+                                    <button class="btn btn-outline-danger btn-sm" type="submit">
+                                        <i class="fas fa-trash mr-1"></i><?= esc(ui_locale() === 'it' ? 'Elimina gruppo' : 'Delete group') ?>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="card card-outline card-info">

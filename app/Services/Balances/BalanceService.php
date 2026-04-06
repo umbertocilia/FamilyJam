@@ -516,6 +516,7 @@ final class BalanceService
                 'group_id' => $group['group_id'],
                 'group_name' => $group['group_name'],
                 'group_color' => $group['group_color'],
+                'currencies' => $group['currencies'],
                 'netBalances' => $netBalances,
                 'pairwiseBalances' => $this->compressPairwiseEdges($groupEdgeMap[$mapKey] ?? [], $memberDirectory),
                 'simplifiedTransfers' => $debtSimplifier->simplify($group['currencies'], $memberDirectory),

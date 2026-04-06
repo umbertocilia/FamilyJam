@@ -1,25 +1,26 @@
 <?= $this->extend('layouts/app') ?>
 
 <?= $this->section('content') ?>
+<?php helper('ui'); ?>
 <section class="panel panel--hero">
     <div class="stack">
-        <p class="eyebrow">Memberships</p>
-        <h1><?= esc($membershipContext['membership']['household_name']) ?> members</h1>
-        <p class="hero__lead">Active memberships, access status, roles and pending invitations for the current household.</p>
-        <div class="quick-filter-bar" aria-label="Member shortcuts">
-            <a class="module-chip" href="<?= route_url('memberships.index', $membershipContext['membership']['household_slug']) ?>">Members</a>
+        <p class="eyebrow"><?= esc(ui_locale() === 'it' ? 'Membership' : 'Memberships') ?></p>
+        <h1><?= esc($membershipContext['membership']['household_name']) ?> <?= esc(ui_locale() === 'it' ? 'membri' : 'members') ?></h1>
+        <p class="hero__lead"><?= esc(ui_locale() === 'it' ? 'Membership attive, stato accesso, ruoli e inviti pendenti per la household corrente.' : 'Active memberships, access status, roles and pending invitations for the current household.') ?></p>
+        <div class="quick-filter-bar" aria-label="<?= esc(ui_locale() === 'it' ? 'Scorciatoie membri' : 'Member shortcuts') ?>">
+            <a class="module-chip" href="<?= route_url('memberships.index', $membershipContext['membership']['household_slug']) ?>"><?= esc(ui_locale() === 'it' ? 'Membri' : 'Members') ?></a>
             <?php if ($canManageRoles): ?>
-                <a class="module-chip" href="<?= route_url('roles.index', $membershipContext['membership']['household_slug']) ?>">Roles</a>
+                <a class="module-chip" href="<?= route_url('roles.index', $membershipContext['membership']['household_slug']) ?>"><?= esc(ui_locale() === 'it' ? 'Ruoli' : 'Roles') ?></a>
             <?php endif; ?>
             <?php if ($canManageMembers): ?>
-                <a class="module-chip" href="<?= route_url('invitations.index', $membershipContext['membership']['household_slug']) ?>">Invitations</a>
+                <a class="module-chip" href="<?= route_url('invitations.index', $membershipContext['membership']['household_slug']) ?>"><?= esc(ui_locale() === 'it' ? 'Inviti' : 'Invitations') ?></a>
             <?php endif; ?>
         </div>
     </div>
 
     <?php if ($canManageRoles): ?>
         <div class="hero__actions">
-            <a class="button button--secondary" href="<?= route_url('roles.index', $membershipContext['membership']['household_slug']) ?>">Manage roles</a>
+            <a class="button button--secondary" href="<?= route_url('roles.index', $membershipContext['membership']['household_slug']) ?>"><?= esc(ui_locale() === 'it' ? 'Gestisci ruoli' : 'Manage roles') ?></a>
         </div>
     <?php endif; ?>
 </section>
@@ -28,8 +29,8 @@
     <article class="panel">
         <div class="section-heading">
             <div>
-                <p class="section-heading__eyebrow">Members</p>
-                <h2>Member list</h2>
+                <p class="section-heading__eyebrow"><?= esc(ui_locale() === 'it' ? 'Membri' : 'Members') ?></p>
+                <h2><?= esc(ui_locale() === 'it' ? 'Elenco membri' : 'Member list') ?></h2>
             </div>
         </div>
 
@@ -57,8 +58,8 @@
     <article class="panel panel--accent">
         <div class="section-heading">
             <div>
-                <p class="section-heading__eyebrow">Invitations</p>
-                <h2>Invitations and onboarding</h2>
+                <p class="section-heading__eyebrow"><?= esc(ui_locale() === 'it' ? 'Inviti' : 'Invitations') ?></p>
+                <h2><?= esc(ui_locale() === 'it' ? 'Inviti e onboarding' : 'Invitations and onboarding') ?></h2>
             </div>
         </div>
 
@@ -70,7 +71,7 @@
                     <input type="email" name="email" value="<?= esc(old('email')) ?>">
                 </label>
                 <label class="field">
-                    <span>Role</span>
+                    <span><?= esc(ui_locale() === 'it' ? 'Ruolo' : 'Role') ?></span>
                     <select name="role_code">
                         <?php foreach ($assignableRoles as $role): ?>
                             <option value="<?= esc((string) $role['code']) ?>" <?= old('role_code', 'member') === $role['code'] ? 'selected' : '' ?>><?= esc((string) $role['name']) ?></option>
@@ -78,13 +79,13 @@
                     </select>
                 </label>
                 <label class="field">
-                    <span>Message</span>
+                    <span><?= esc(ui_locale() === 'it' ? 'Messaggio' : 'Message') ?></span>
                     <textarea name="message" rows="3"><?= esc(old('message')) ?></textarea>
                 </label>
-                <button class="button button--primary" type="submit">Create invitation</button>
+                <button class="button button--primary" type="submit"><?= esc(ui_locale() === 'it' ? 'Crea invito' : 'Create invitation') ?></button>
             </form>
         <?php else: ?>
-            <p>You do not have permission to create or revoke invitations.</p>
+            <p><?= esc(ui_locale() === 'it' ? 'Non hai i permessi per creare o revocare inviti.' : 'You do not have permission to create or revoke invitations.') ?></p>
         <?php endif; ?>
 
         <div class="stack-list">
@@ -96,12 +97,12 @@
                     <div class="row-card">
                         <div>
                             <strong><?= esc((string) $invitation['email']) ?></strong>
-                            <p><?= esc((string) ($invitation['role_name'] ?? 'Member')) ?> - expires <?= esc((string) $invitation['expires_at']) ?></p>
+                            <p><?= esc((string) ($invitation['role_name'] ?? (ui_locale() === 'it' ? 'Membro' : 'Member'))) ?> - <?= esc(ui_locale() === 'it' ? 'scade il' : 'expires') ?> <?= esc((string) $invitation['expires_at']) ?></p>
                         </div>
                         <?php if ($canManageMembers): ?>
                             <form method="post" action="<?= route_url('invitations.revoke', $membershipContext['membership']['household_slug'], $invitation['id']) ?>">
                                 <?= csrf_field() ?>
-                                <button class="button button--secondary" type="submit">Revoke</button>
+                                <button class="button button--secondary" type="submit"><?= esc(ui_locale() === 'it' ? 'Revoca' : 'Revoke') ?></button>
                             </form>
                         <?php endif; ?>
                     </div>

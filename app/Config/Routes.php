@@ -70,6 +70,9 @@ $routes->group('', ['filter' => ['auth']], static function (RouteCollection $rou
     $routes->get('households/(:segment)/expenses', 'Web\Expenses\ExpenseController::index/$1', ['as' => 'expenses.index', 'filter' => ['currentHousehold']]);
     $routes->get('households/(:segment)/expenses/create', 'Web\Expenses\ExpenseController::create/$1', ['as' => 'expenses.create', 'filter' => ['currentHousehold', 'permission:create_expense']]);
     $routes->post('households/(:segment)/expenses', 'Web\Expenses\ExpenseController::store/$1', ['as' => 'expenses.store', 'filter' => ['currentHousehold', 'permission:create_expense']]);
+    $routes->post('households/(:segment)/expenses/groups', 'Web\Expenses\ExpenseController::createGroup/$1', ['as' => 'expenses.groups.create', 'filter' => ['currentHousehold']]);
+    $routes->post('households/(:segment)/expenses/groups/(:num)/update', 'Web\Expenses\ExpenseController::updateGroup/$1/$2', ['as' => 'expenses.groups.update', 'filter' => ['currentHousehold']]);
+    $routes->post('households/(:segment)/expenses/groups/(:num)/delete', 'Web\Expenses\ExpenseController::deleteGroup/$1/$2', ['as' => 'expenses.groups.delete', 'filter' => ['currentHousehold']]);
     $routes->get('households/(:segment)/expenses/(:num)', 'Web\Expenses\ExpenseController::show/$1/$2', ['as' => 'expenses.show', 'filter' => ['currentHousehold']]);
     $routes->get('households/(:segment)/expenses/(:num)/edit', 'Web\Expenses\ExpenseController::edit/$1/$2', ['as' => 'expenses.edit', 'filter' => ['currentHousehold']]);
     $routes->post('households/(:segment)/expenses/(:num)/update', 'Web\Expenses\ExpenseController::update/$1/$2', ['as' => 'expenses.update', 'filter' => ['currentHousehold']]);

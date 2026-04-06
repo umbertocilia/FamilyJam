@@ -9,6 +9,7 @@ use App\Models\Attachments\AttachmentModel;
 use App\Models\Audit\AuditLogModel;
 use App\Models\Finance\ExpenseCategoryModel;
 use App\Models\Finance\ExpenseGroupModel;
+use App\Models\Finance\ExpenseGroupMemberModel;
 use App\Models\Finance\ExpenseModel;
 use App\Models\Finance\ExpensePayerModel;
 use App\Models\Finance\ExpenseSplitModel;
@@ -34,6 +35,7 @@ final class ExpenseService
         private readonly ?ExpenseSplitModel $expenseSplitModel = null,
         private readonly ?ExpenseCategoryModel $expenseCategoryModel = null,
         private readonly ?ExpenseGroupModel $expenseGroupModel = null,
+        private readonly ?ExpenseGroupMemberModel $expenseGroupMemberModel = null,
         private readonly ?HouseholdMembershipModel $householdMembershipModel = null,
         private readonly ?AttachmentModel $attachmentModel = null,
         private readonly ?AuditLogService $auditLogService = null,
@@ -44,7 +46,7 @@ final class ExpenseService
 
     /**
      * @param array<string, mixed> $filters
-     * @return array{membership: array<string, mixed>, expenses: list<array<string, mixed>>, categories: list<array<string, mixed>>, members: list<array<string, mixed>>, filters: array<string, mixed>}|null
+     * @return array{membership: array<string, mixed>, expenses: list<array<string, mixed>>, categories: list<array<string, mixed>>, expenseGroups: list<array<string, mixed>>, members: list<array<string, mixed>>, availableMembers: list<array<string, mixed>>, filters: array<string, mixed>}|null
      */
     public function listContext(int $actorUserId, string $identifier, array $filters = []): ?array
     {
@@ -63,13 +65,15 @@ final class ExpenseService
             'member_id' => $filters['member_id'] ?? null,
             'status' => $filters['status'] ?? null,
         ];
+        $availableMembers = ($this->householdMembershipModel ?? new HouseholdMembershipModel())->listActiveMembersForAssignment($householdId);
 
         return [
             'membership' => $membership,
             'expenses' => ($this->expenseModel ?? new ExpenseModel())->listForHousehold($householdId, $normalizedFilters),
             'categories' => ($this->expenseCategoryModel ?? new ExpenseCategoryModel())->listAvailableForHousehold($householdId),
-            'expenseGroups' => ($this->expenseGroupModel ?? new ExpenseGroupModel())->listForHousehold($householdId),
+            'expenseGroups' => $this->listExpenseGroups($householdId, $availableMembers),
             'members' => ($this->householdMembershipModel ?? new HouseholdMembershipModel())->listForHousehold($householdId),
+            'availableMembers' => $availableMembers,
             'filters' => $normalizedFilters,
         ];
     }
@@ -101,11 +105,14 @@ final class ExpenseService
             $splits = ($this->expenseSplitModel ?? new ExpenseSplitModel())->listForExpense($expenseId);
         }
 
+        $householdId = (int) $membership['household_id'];
+        $availableMembers = ($this->householdMembershipModel ?? new HouseholdMembershipModel())->listActiveMembersForAssignment($householdId);
+
         return [
             'membership' => $membership,
-            'categories' => ($this->expenseCategoryModel ?? new ExpenseCategoryModel())->listAvailableForHousehold((int) $membership['household_id']),
-            'expenseGroups' => ($this->expenseGroupModel ?? new ExpenseGroupModel())->listForHousehold((int) $membership['household_id']),
-            'members' => ($this->householdMembershipModel ?? new HouseholdMembershipModel())->listForHousehold((int) $membership['household_id']),
+            'categories' => ($this->expenseCategoryModel ?? new ExpenseCategoryModel())->listAvailableForHousehold($householdId),
+            'expenseGroups' => $this->listExpenseGroups($householdId, $availableMembers),
+            'members' => ($this->householdMembershipModel ?? new HouseholdMembershipModel())->listForHousehold($householdId),
             'expense' => $expense,
             'payers' => $payers,
             'splits' => $splits,
@@ -432,5 +439,38 @@ final class ExpenseService
         }
 
         return (int) $value;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $availableMembers
+     * @return list<array<string, mixed>>
+     */
+    private function listExpenseGroups(int $householdId, array $availableMembers): array
+    {
+        $groups = ($this->expenseGroupModel ?? new ExpenseGroupModel())->listForHousehold($householdId);
+
+        if ($groups === []) {
+            return [];
+        }
+
+        $memberIdsByGroup = ($this->expenseGroupMemberModel ?? new ExpenseGroupMemberModel())
+            ->userIdsByGroupIds(array_map(static fn (array $group): int => (int) $group['id'], $groups));
+        $memberDirectory = [];
+
+        foreach ($availableMembers as $member) {
+            $memberDirectory[(int) $member['user_id']] = $member;
+        }
+
+        foreach ($groups as &$group) {
+            $userIds = $memberIdsByGroup[(int) $group['id']] ?? [];
+            $group['member_user_ids'] = $userIds;
+            $group['members'] = array_values(array_filter(
+                array_map(static fn (int $userId): ?array => $memberDirectory[$userId] ?? null, $userIds)
+            ));
+        }
+
+        unset($group);
+
+        return $groups;
     }
 }

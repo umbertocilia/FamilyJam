@@ -191,11 +191,6 @@ final class HouseholdManagementService
     {
         helper('ui');
 
-        if (! ($this->householdAuthorizationService ?? service('householdAuthorization'))
-            ->canByIdentifier($actorUserId, $identifier, Permission::MANAGE_SETTINGS)) {
-            return null;
-        }
-
         $context = $this->householdSettings($actorUserId, $identifier);
         if ($context === null) {
             return null;
@@ -242,11 +237,6 @@ final class HouseholdManagementService
     {
         helper('ui');
 
-        if (! ($this->householdAuthorizationService ?? service('householdAuthorization'))
-            ->canByIdentifier($actorUserId, $identifier, Permission::MANAGE_SETTINGS)) {
-            return null;
-        }
-
         $context = $this->householdSettings($actorUserId, $identifier);
         if ($context === null) {
             return null;
@@ -290,11 +280,6 @@ final class HouseholdManagementService
     {
         helper('ui');
 
-        if (! ($this->householdAuthorizationService ?? service('householdAuthorization'))
-            ->canByIdentifier($actorUserId, $identifier, Permission::MANAGE_SETTINGS)) {
-            return null;
-        }
-
         $context = $this->householdSettings($actorUserId, $identifier);
         if ($context === null) {
             return null;
@@ -307,7 +292,21 @@ final class HouseholdManagementService
             throw new \DomainException(ui_text('settings.expense_groups.not_found'));
         }
 
+        $db->transException(true)->transStart();
+
+        $db->table('expenses')
+            ->where('household_id', (int) $context['household']['id'])
+            ->where('expense_group_id', $groupId)
+            ->update(['expense_group_id' => null]);
+
+        $db->table('settlements')
+            ->where('household_id', (int) $context['household']['id'])
+            ->where('expense_group_id', $groupId)
+            ->update(['expense_group_id' => null]);
+
         $model->delete($groupId);
+
+        $db->transComplete();
 
         return $this->householdSettings($actorUserId, (string) $context['household']['slug']);
     }

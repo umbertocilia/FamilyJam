@@ -2,6 +2,7 @@
 
 <?= $this->section('content') ?>
 <?php
+helper('ui');
 $membership = $choreOccurrenceContext['membership'];
 $members = $choreOccurrenceContext['members'];
 $occurrences = $choreOccurrenceContext['occurrences'];
@@ -12,13 +13,13 @@ $canManageChores = ! empty($choreOccurrenceContext['canManageChores']);
 ?>
 <section class="panel panel--hero">
     <div class="stack">
-        <p class="eyebrow">Occurrences</p>
-        <h1>Lista occorrenze chore</h1>
-        <p class="hero__lead">Feed operativo unico per pending, overdue, completed e skipped.</p>
+        <p class="eyebrow"><?= esc(ui_locale() === 'it' ? 'Occorrenze' : 'Occurrences') ?></p>
+        <h1><?= esc(ui_locale() === 'it' ? 'Lista occorrenze faccende' : 'Chore occurrence list') ?></h1>
+        <p class="hero__lead"><?= esc(ui_locale() === 'it' ? 'Feed operativo unico per in attesa, scadute, completate e saltate.' : 'Single operational feed for pending, overdue, completed and skipped chores.') ?></p>
     </div>
     <div class="hero__actions">
-        <a class="button button--secondary" href="<?= route_url('chores.templates', $identifier) ?>">Templates</a>
-        <a class="button button--secondary" href="<?= route_url('chores.my', $identifier) ?>">My chores</a>
+        <a class="button button--secondary" href="<?= route_url('chores.templates', $identifier) ?>"><?= esc(ui_locale() === 'it' ? 'Template' : 'Templates') ?></a>
+        <a class="button button--secondary" href="<?= route_url('chores.my', $identifier) ?>"><?= esc(ui_locale() === 'it' ? 'Le mie faccende' : 'My chores') ?></a>
     </div>
 </section>
 
@@ -26,19 +27,19 @@ $canManageChores = ! empty($choreOccurrenceContext['canManageChores']);
     <form class="auth-form auth-form--compact" method="get" action="<?= route_url('chores.occurrences', $identifier) ?>">
         <div class="form-grid">
             <label class="field">
-                <span>Status</span>
+                <span><?= esc(ui_locale() === 'it' ? 'Stato' : 'Status') ?></span>
                 <select name="status">
-                    <option value="">Tutti</option>
-                    <option value="pending" <?= ($filters['status'] ?? '') === 'pending' ? 'selected' : '' ?>>Pending</option>
-                    <option value="overdue" <?= ($filters['status'] ?? '') === 'overdue' ? 'selected' : '' ?>>Overdue</option>
-                    <option value="completed" <?= ($filters['status'] ?? '') === 'completed' ? 'selected' : '' ?>>Completed</option>
-                    <option value="skipped" <?= ($filters['status'] ?? '') === 'skipped' ? 'selected' : '' ?>>Skipped</option>
+                    <option value=""><?= esc(ui_locale() === 'it' ? 'Tutti' : 'All') ?></option>
+                    <option value="pending" <?= ($filters['status'] ?? '') === 'pending' ? 'selected' : '' ?>><?= esc(ui_locale() === 'it' ? 'In attesa' : 'Pending') ?></option>
+                    <option value="overdue" <?= ($filters['status'] ?? '') === 'overdue' ? 'selected' : '' ?>><?= esc(ui_locale() === 'it' ? 'Scadute' : 'Overdue') ?></option>
+                    <option value="completed" <?= ($filters['status'] ?? '') === 'completed' ? 'selected' : '' ?>><?= esc(ui_locale() === 'it' ? 'Completate' : 'Completed') ?></option>
+                    <option value="skipped" <?= ($filters['status'] ?? '') === 'skipped' ? 'selected' : '' ?>><?= esc(ui_locale() === 'it' ? 'Saltate' : 'Skipped') ?></option>
                 </select>
             </label>
             <label class="field">
-                <span>Assigned member</span>
+                <span><?= esc(ui_locale() === 'it' ? 'Membro assegnato' : 'Assigned member') ?></span>
                 <select name="assigned_user_id">
-                    <option value="">Tutti</option>
+                    <option value=""><?= esc(ui_locale() === 'it' ? 'Tutti' : 'All') ?></option>
                     <?php foreach ($members as $member): ?>
                         <option value="<?= esc((string) $member['user_id']) ?>" <?= (string) ($filters['assigned_user_id'] ?? '') === (string) $member['user_id'] ? 'selected' : '' ?>>
                             <?= esc((string) ($member['display_name'] ?? $member['email'])) ?>
@@ -48,16 +49,16 @@ $canManageChores = ! empty($choreOccurrenceContext['canManageChores']);
             </label>
         </div>
         <div class="hero__actions">
-            <button class="button button--primary" type="submit">Filtra</button>
-            <a class="button button--secondary" href="<?= route_url('chores.occurrences', $identifier) ?>">Reset</a>
+            <button class="button button--primary" type="submit"><?= esc(ui_locale() === 'it' ? 'Filtra' : 'Filter') ?></button>
+            <a class="button button--secondary" href="<?= route_url('chores.occurrences', $identifier) ?>"><?= esc(ui_locale() === 'it' ? 'Reset' : 'Reset') ?></a>
         </div>
     </form>
 
     <div class="list-table">
         <?php if ($occurrences === []): ?>
             <div class="row-card row-card--vertical">
-                <strong>Nessuna occorrenza trovata</strong>
-                <p>Genera una scadenza dai template oppure attendi il job recurring.</p>
+                <strong><?= esc(ui_locale() === 'it' ? 'Nessuna occorrenza trovata' : 'No occurrences found') ?></strong>
+                <p><?= esc(ui_locale() === 'it' ? 'Genera una scadenza dai template oppure attendi il job ricorrente.' : 'Generate a due date from templates or wait for the recurring job.') ?></p>
             </div>
         <?php else: ?>
             <?php foreach ($occurrences as $occurrence): ?>
@@ -67,21 +68,21 @@ $canManageChores = ! empty($choreOccurrenceContext['canManageChores']);
                             <strong><?= esc((string) $occurrence['chore_title']) ?></strong>
                             <span class="badge <?= esc(chore_status_badge_class((string) $occurrence['status'])) ?>"><?= esc(chore_status_label((string) $occurrence['status'])) ?></span>
                         </div>
-                        <p><?= esc((string) $occurrence['due_at']) ?> - <?= esc((string) ($occurrence['assigned_user_name'] ?? 'Unassigned')) ?></p>
+                        <p><?= esc((string) $occurrence['due_at']) ?> - <?= esc((string) ($occurrence['assigned_user_name'] ?? (ui_locale() === 'it' ? 'Non assegnata' : 'Unassigned'))) ?></p>
                         <?php if (! empty($occurrence['skip_reason'])): ?>
-                            <p>Skip reason: <?= esc((string) $occurrence['skip_reason']) ?></p>
+                            <p><?= esc(ui_locale() === 'it' ? 'Motivo skip' : 'Skip reason') ?>: <?= esc((string) $occurrence['skip_reason']) ?></p>
                         <?php endif; ?>
                     </div>
                     <div class="list-table__meta chore-actions">
                         <?php if (in_array((string) $occurrence['status'], ['pending', 'overdue'], true) && ($canManageChores || (int) ($occurrence['assigned_user_id'] ?? 0) === $currentUserId)): ?>
                             <form method="post" action="<?= route_url('chores.complete', $identifier, $occurrence['id']) ?>">
                                 <?= csrf_field() ?>
-                                <button class="button button--primary" type="submit">Complete</button>
+                                <button class="button button--primary" type="submit"><?= esc(ui_locale() === 'it' ? 'Completa' : 'Complete') ?></button>
                             </form>
                             <form class="chore-inline-form" method="post" action="<?= route_url('chores.skip', $identifier, $occurrence['id']) ?>">
                                 <?= csrf_field() ?>
-                                <input type="text" name="skip_reason" placeholder="Motivazione skip" required>
-                                <button class="button button--secondary" type="submit">Skip</button>
+                                <input type="text" name="skip_reason" placeholder="<?= esc(ui_locale() === 'it' ? 'Motivo dello skip' : 'Skip reason') ?>" required>
+                                <button class="button button--secondary" type="submit"><?= esc(ui_locale() === 'it' ? 'Salta' : 'Skip') ?></button>
                             </form>
                         <?php else: ?>
                             <span class="badge badge--expense-step"><?= esc((string) $occurrence['points_awarded']) ?> pts</span>

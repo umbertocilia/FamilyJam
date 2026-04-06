@@ -97,6 +97,12 @@ $prefill = $settlementPrefill ?? [];
                                     </option>
                                 <?php endforeach; ?>
                             </select>
+                            <small class="field-hint">
+                                <?= esc(ui_locale() === 'it'
+                                    ? 'I gruppi spesa si gestiscono direttamente nella pagina Spese.'
+                                    : 'Expense groups are managed directly from the Expenses page.') ?>
+                                <a href="<?= route_url('expenses.index', $identifier) ?>#expense-groups"><?= esc(ui_locale() === 'it' ? 'Apri gruppi spesa' : 'Open expense groups') ?></a>.
+                            </small>
                         </label>
 
                         <label class="field">

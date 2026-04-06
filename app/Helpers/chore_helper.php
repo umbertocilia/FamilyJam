@@ -5,11 +5,13 @@ declare(strict_types=1);
 if (! function_exists('chore_status_label')) {
     function chore_status_label(string $status): string
     {
+        helper('ui');
+
         return match ($status) {
-            'pending' => 'Pending',
-            'completed' => 'Completed',
-            'skipped' => 'Skipped',
-            'overdue' => 'Overdue',
+            'pending' => ui_locale() === 'it' ? 'In attesa' : 'Pending',
+            'completed' => ui_locale() === 'it' ? 'Completata' : 'Completed',
+            'skipped' => ui_locale() === 'it' ? 'Saltata' : 'Skipped',
+            'overdue' => ui_locale() === 'it' ? 'Scaduta' : 'Overdue',
             default => ucfirst($status),
         };
     }
@@ -31,9 +33,11 @@ if (! function_exists('chore_status_badge_class')) {
 if (! function_exists('chore_assignment_label')) {
     function chore_assignment_label(string $mode): string
     {
+        helper('ui');
+
         return match ($mode) {
-            'fixed' => 'Fixed assignee',
-            'rotation' => 'Rotation',
+            'fixed' => ui_locale() === 'it' ? 'Assegnazione fissa' : 'Fixed assignee',
+            'rotation' => ui_locale() === 'it' ? 'Rotazione' : 'Rotation',
             default => ucfirst($mode),
         };
     }
