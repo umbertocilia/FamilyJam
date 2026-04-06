@@ -1,0 +1,40 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Composer dependencies
+/vendor/
+
+# Runtime data
+/writable/debugbar/*
+!/writable/debugbar/index.html
+/writable/logs/*
+!/writable/logs/index.html
+/writable/session/*
+!/writable/session/index.html
+/writable/uploads/*
+!/writable/uploads/index.html
+/writable/cache/*
+!/writable/cache/index.html
+
+# Local browser/audit/screenshot artifacts
+/.audit_pages/
+/.shots/
+/.chrome-*/
+/.tmp/
+/.tmp-*/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Legacy CodeIgniter patterns
+*/config/development
+*/logs/log-*.php
+!*/logs/index.html
+!*/cache/.htaccess
+application/logs/*
+!application/logs/index.html
+!application/logs/.htaccess
