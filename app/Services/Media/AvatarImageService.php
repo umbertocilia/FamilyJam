@@ -26,6 +26,11 @@ final class AvatarImageService
         return $this->store($file, 'households/' . $householdId, 'household-' . $householdId, $currentPath);
     }
 
+    public function deleteManagedAvatar(?string $path): void
+    {
+        $this->deleteManagedFile($path);
+    }
+
     private function store(?UploadedFile $file, string $relativeDirectory, string $prefix, ?string $currentPath): ?string
     {
         if ($file === null || $file->getClientName() === '') {

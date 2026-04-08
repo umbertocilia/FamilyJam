@@ -21,69 +21,102 @@ $recurring = is_array($chore['recurring'] ?? null) ? $chore['recurring'] : [];
 <section class="panel">
     <form class="auth-form" method="post" action="<?= esc($action) ?>" data-recurring-form data-chore-form>
         <?= csrf_field() ?>
-        <div class="form-grid">
-            <label class="field field--full">
-                <span><?= esc(ui_locale() === 'it' ? 'Titolo' : 'Title') ?></span>
-                <input type="text" name="title" value="<?= esc(old('title', (string) ($chore['title'] ?? ''))) ?>" required>
-            </label>
-            <label class="field field--full">
-                <span><?= esc(ui_locale() === 'it' ? 'Descrizione' : 'Description') ?></span>
-                <textarea name="description" rows="4"><?= esc(old('description', (string) ($chore['description'] ?? ''))) ?></textarea>
-            </label>
-            <label class="field">
-                <span><?= esc(ui_locale() === 'it' ? 'Punti' : 'Points') ?></span>
-                <input type="number" min="0" name="points" value="<?= esc(old('points', (string) ($chore['points'] ?? '0'))) ?>">
-            </label>
-            <label class="field">
-                <span><?= esc(ui_locale() === 'it' ? 'Minuti stimati' : 'Estimated minutes') ?></span>
-                <input type="number" min="0" name="estimated_minutes" value="<?= esc(old('estimated_minutes', (string) ($chore['estimated_minutes'] ?? '0'))) ?>">
-            </label>
-        </div>
+        <div class="section-stack">
+            <section class="form-section">
+                <div class="form-section__header">
+                    <div>
+                        <h2><?= esc(ui_locale() === 'it' ? '1. Dati del template' : '1. Template details') ?></h2>
+                        <p class="inline-hint"><?= esc(ui_locale() === 'it'
+                            ? 'Definisci titolo, descrizione e sforzo stimato. Questi valori saranno usati in dashboard, assegnazioni e report.'
+                            : 'Define title, description and estimated effort. These values are reused across dashboard, assignments and reports.') ?></p>
+                    </div>
+                </div>
 
-        <div class="toggle-grid">
-            <label class="checkbox-row">
-                <input type="checkbox" name="is_active" value="1" <?= old('is_active', (string) ($chore['is_active'] ?? '1')) ? 'checked' : '' ?>>
-                <span><?= esc(ui_locale() === 'it' ? 'Template attivo' : 'Active template') ?></span>
-            </label>
-            <label class="checkbox-row">
-                <input type="checkbox" name="recurring_enabled" value="1" data-chore-recurring-toggle <?= old('recurring_enabled', ! empty($recurring) ? '1' : '') ? 'checked' : '' ?>>
-                <span><?= esc(ui_locale() === 'it' ? 'Abilita regola ricorrente' : 'Enable recurring rule') ?></span>
-            </label>
-        </div>
+                <div class="form-grid">
+                    <label class="field field--full">
+                        <span><?= esc(ui_locale() === 'it' ? 'Titolo' : 'Title') ?></span>
+                        <input type="text" name="title" value="<?= esc(old('title', (string) ($chore['title'] ?? ''))) ?>" required>
+                    </label>
+                    <label class="field field--full">
+                        <span><?= esc(ui_locale() === 'it' ? 'Descrizione' : 'Description') ?></span>
+                        <textarea name="description" rows="4"><?= esc(old('description', (string) ($chore['description'] ?? ''))) ?></textarea>
+                    </label>
+                    <label class="field">
+                        <span><?= esc(ui_locale() === 'it' ? 'Punti' : 'Points') ?></span>
+                        <input type="number" min="0" name="points" value="<?= esc(old('points', (string) ($chore['points'] ?? '0'))) ?>">
+                    </label>
+                    <label class="field">
+                        <span><?= esc(ui_locale() === 'it' ? 'Minuti stimati' : 'Estimated minutes') ?></span>
+                        <input type="number" min="0" name="estimated_minutes" value="<?= esc(old('estimated_minutes', (string) ($chore['estimated_minutes'] ?? '0'))) ?>">
+                    </label>
+                </div>
 
-        <div class="form-grid">
-            <label class="field">
-                <span><?= esc(ui_locale() === 'it' ? 'Modalita assegnazione' : 'Assignment mode') ?></span>
-                <select name="assignment_mode" data-chore-assignment-mode>
-                    <option value="fixed" <?= old('assignment_mode', (string) ($chore['assignment_mode'] ?? 'fixed')) === 'fixed' ? 'selected' : '' ?>><?= esc(ui_locale() === 'it' ? 'Fissa' : 'Fixed') ?></option>
-                    <option value="rotation" <?= old('assignment_mode', (string) ($chore['assignment_mode'] ?? 'fixed')) === 'rotation' ? 'selected' : '' ?>><?= esc(ui_locale() === 'it' ? 'Rotazione' : 'Rotation') ?></option>
-                </select>
-            </label>
-            <label class="field" data-chore-assignment-field="fixed">
-                <span><?= esc(ui_locale() === 'it' ? 'Assegnatario fisso' : 'Fixed assignee') ?></span>
-                <select name="fixed_assignee_user_id">
-                    <option value=""><?= esc(ui_locale() === 'it' ? 'Non assegnata' : 'Unassigned') ?></option>
-                    <?php foreach ($members as $member): ?>
-                        <option value="<?= esc((string) $member['user_id']) ?>" <?= old('fixed_assignee_user_id', (string) ($chore['fixed_assignee_user_id'] ?? '')) === (string) $member['user_id'] ? 'selected' : '' ?>>
-                            <?= esc((string) ($member['display_name'] ?? $member['email'])) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </label>
-            <label class="field" data-chore-assignment-field="rotation">
-                <span><?= esc(ui_locale() === 'it' ? 'Ancora rotazione' : 'Rotation anchor') ?></span>
-                <select name="rotation_anchor_user_id">
-                    <option value=""><?= esc(ui_locale() === 'it' ? 'Primo membro attivo' : 'First active member') ?></option>
-                    <?php foreach ($members as $member): ?>
-                        <option value="<?= esc((string) $member['user_id']) ?>" <?= old('rotation_anchor_user_id', (string) ($chore['rotation_anchor_user_id'] ?? '')) === (string) $member['user_id'] ? 'selected' : '' ?>>
-                            <?= esc((string) ($member['display_name'] ?? $member['email'])) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </label>
-        </div>
+                <div class="toggle-grid">
+                    <label class="checkbox-row">
+                        <input type="checkbox" name="is_active" value="1" <?= old('is_active', (string) ($chore['is_active'] ?? '1')) ? 'checked' : '' ?>>
+                        <span><?= esc(ui_locale() === 'it' ? 'Template attivo' : 'Active template') ?></span>
+                    </label>
+                    <label class="checkbox-row">
+                        <input type="checkbox" name="recurring_enabled" value="1" data-chore-recurring-toggle <?= old('recurring_enabled', ! empty($recurring) ? '1' : '') ? 'checked' : '' ?>>
+                        <span><?= esc(ui_locale() === 'it' ? 'Abilita regola ricorrente' : 'Enable recurring rule') ?></span>
+                    </label>
+                </div>
+            </section>
 
-        <div class="form-grid" data-chore-recurring-fields>
+            <section class="form-section">
+                <div class="form-section__header">
+                    <div>
+                        <h2><?= esc(ui_locale() === 'it' ? '2. Assegnazione' : '2. Assignment') ?></h2>
+                        <p class="inline-hint"><?= esc(ui_locale() === 'it'
+                            ? 'Puoi mantenere una persona fissa oppure usare la rotazione per distribuire il carico tra i membri.'
+                            : 'You can keep one fixed assignee or use rotation to distribute effort across members.') ?></p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <label class="field">
+                        <span><?= esc(ui_locale() === 'it' ? 'Modalita assegnazione' : 'Assignment mode') ?></span>
+                        <select name="assignment_mode" data-chore-assignment-mode>
+                            <option value="fixed" <?= old('assignment_mode', (string) ($chore['assignment_mode'] ?? 'fixed')) === 'fixed' ? 'selected' : '' ?>><?= esc(ui_locale() === 'it' ? 'Fissa' : 'Fixed') ?></option>
+                            <option value="rotation" <?= old('assignment_mode', (string) ($chore['assignment_mode'] ?? 'fixed')) === 'rotation' ? 'selected' : '' ?>><?= esc(ui_locale() === 'it' ? 'Rotazione' : 'Rotation') ?></option>
+                        </select>
+                    </label>
+                    <label class="field" data-chore-assignment-field="fixed">
+                        <span><?= esc(ui_locale() === 'it' ? 'Assegnatario fisso' : 'Fixed assignee') ?></span>
+                        <select name="fixed_assignee_user_id">
+                            <option value=""><?= esc(ui_locale() === 'it' ? 'Non assegnata' : 'Unassigned') ?></option>
+                            <?php foreach ($members as $member): ?>
+                                <option value="<?= esc((string) $member['user_id']) ?>" <?= old('fixed_assignee_user_id', (string) ($chore['fixed_assignee_user_id'] ?? '')) === (string) $member['user_id'] ? 'selected' : '' ?>>
+                                    <?= esc((string) ($member['display_name'] ?? $member['email'])) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                    <label class="field" data-chore-assignment-field="rotation">
+                        <span><?= esc(ui_locale() === 'it' ? 'Ancora rotazione' : 'Rotation anchor') ?></span>
+                        <select name="rotation_anchor_user_id">
+                            <option value=""><?= esc(ui_locale() === 'it' ? 'Primo membro attivo' : 'First active member') ?></option>
+                            <?php foreach ($members as $member): ?>
+                                <option value="<?= esc((string) $member['user_id']) ?>" <?= old('rotation_anchor_user_id', (string) ($chore['rotation_anchor_user_id'] ?? '')) === (string) $member['user_id'] ? 'selected' : '' ?>>
+                                    <?= esc((string) ($member['display_name'] ?? $member['email'])) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </label>
+                </div>
+            </section>
+
+            <section class="form-section" data-chore-recurring-fields>
+                <div class="form-section__header">
+                    <div>
+                        <h2><?= esc(ui_locale() === 'it' ? '3. Ricorrenza' : '3. Recurrence') ?></h2>
+                        <p class="inline-hint"><?= esc(ui_locale() === 'it'
+                            ? 'Configura la generazione automatica delle occorrenze. I campi mostrati cambiano in base alla frequenza selezionata.'
+                            : 'Configure automatic occurrence generation. Visible fields adapt to the selected frequency.') ?></p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
             <label class="field">
                 <span><?= esc(ui_locale() === 'it' ? 'Frequenza' : 'Frequency') ?></span>
                 <select name="frequency" data-recurring-frequency>
@@ -132,16 +165,18 @@ $recurring = is_array($chore['recurring'] ?? null) ? $chore['recurring'] : [];
                     <?php endforeach; ?>
                 </div>
             </div>
+                </div>
+
+                <div class="form-grid">
+                    <label class="field">
+                        <span><?= esc(ui_locale() === 'it' ? 'Prima occorrenza manuale' : 'First manual occurrence') ?></span>
+                        <input type="datetime-local" name="first_due_at" value="<?= esc(old('first_due_at', '')) ?>">
+                    </label>
+                </div>
+            </section>
         </div>
 
-        <div class="form-grid">
-            <label class="field">
-                <span><?= esc(ui_locale() === 'it' ? 'Prima occorrenza manuale' : 'First manual occurrence') ?></span>
-                <input type="datetime-local" name="first_due_at" value="<?= esc(old('first_due_at', '')) ?>">
-            </label>
-        </div>
-
-        <div class="hero__actions">
+        <div class="form-actions">
             <button class="button button--primary" type="submit"><?= esc($isEdit ? (ui_locale() === 'it' ? 'Salva modifiche' : 'Save changes') : (ui_locale() === 'it' ? 'Crea template' : 'Create template')) ?></button>
             <a class="button button--secondary" href="<?= route_url('chores.templates', $identifier) ?>"><?= esc(ui_locale() === 'it' ? 'Annulla' : 'Cancel') ?></a>
         </div>

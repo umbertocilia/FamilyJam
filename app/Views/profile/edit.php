@@ -149,6 +149,41 @@ $avatarUrl = $avatarPath !== ''
                 </div>
             </div>
         </form>
+
+        <form action="<?= route_url('profile.delete') ?>" method="post" class="mt-4">
+            <?= csrf_field() ?>
+
+            <div class="card card-outline card-danger">
+                <div class="card-header">
+                    <h3 class="card-title"><?= esc(ui_text('profile.delete.title')) ?></h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3"><?= esc(ui_text('profile.delete.lead')) ?></p>
+                    <div class="alert alert-warning mb-4">
+                        <?= esc(ui_text('profile.delete.help')) ?>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="currentPassword"><?= esc(ui_text('profile.delete.password')) ?></label>
+                                <input class="form-control <?= esc(field_error_class($formErrors, 'current_password')) ?>" id="currentPassword" type="password" name="current_password" autocomplete="current-password" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="confirmationPhrase"><?= esc(ui_text('profile.delete.confirm')) ?></label>
+                                <input class="form-control <?= esc(field_error_class($formErrors, 'confirmation_phrase')) ?>" id="confirmationPhrase" type="text" name="confirmation_phrase" value="<?= esc(old('confirmation_phrase')) ?>" maxlength="32" required>
+                                <small class="form-text text-muted"><?= esc(ui_text('profile.delete.confirm.help')) ?></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-danger" type="submit"><?= esc(ui_text('profile.delete.submit')) ?></button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 <?= $this->endSection() ?>

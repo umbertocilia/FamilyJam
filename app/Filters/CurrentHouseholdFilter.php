@@ -7,7 +7,6 @@ namespace App\Filters;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
-use CodeIgniter\Security\Exceptions\SecurityException;
 
 final class CurrentHouseholdFilter implements FilterInterface
 {
@@ -22,7 +21,11 @@ final class CurrentHouseholdFilter implements FilterInterface
         $activeHousehold = service('householdContext')->activeHouseholdByIdentifier($householdSlug);
 
         if ($activeHousehold === null) {
-            throw SecurityException::forDisallowedAction();
+            service('householdContext')->clearActiveHousehold();
+
+            return redirect()
+                ->to(route_url('households.index'))
+                ->with('warning', 'La household richiesta non e disponibile per l\'utente corrente.');
         }
 
         return null;

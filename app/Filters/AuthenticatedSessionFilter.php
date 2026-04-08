@@ -12,11 +12,13 @@ final class AuthenticatedSessionFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        if (session()->get('auth.user_id') !== null && service('sessionAuth')->hasValidSession()) {
+        $sessionAuth = service('sessionAuth');
+
+        if ($sessionAuth->hasValidSession()) {
             return null;
         }
 
-        service('sessionAuth')->logout();
+        $sessionAuth->logout(false);
 
         session()->set('auth.intended_url', (string) current_url(true));
 

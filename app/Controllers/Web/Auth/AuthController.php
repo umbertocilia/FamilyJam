@@ -31,13 +31,15 @@ final class AuthController extends BaseController
             'email',
             'password',
             'invite_token',
+            'remember',
         ]);
 
         if (! $this->validateData($payload, config('Validation')->authLogin)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $user = service('sessionAuth')->attempt((string) $payload['email'], (string) $payload['password']);
+        $remember = in_array(strtolower(trim((string) ($payload['remember'] ?? '0'))), ['1', 'true', 'on', 'yes'], true);
+        $user = service('sessionAuth')->attempt((string) $payload['email'], (string) $payload['password'], $remember);
 
         if ($user === null) {
             return redirect()->back()->withInput()->with('error', ui_locale() === 'it' ? 'Credenziali non valide o account temporaneamente bloccato.' : 'Invalid credentials or account temporarily blocked.');
@@ -54,17 +56,19 @@ final class AuthController extends BaseController
                 if ($membership !== null) {
                     return redirect()
                         ->to(route_url('households.dashboard', $membership['household_slug']))
+                        ->withCookies()
                         ->with('success', ui_locale() === 'it' ? 'Invito accettato. Accesso completato.' : 'Invitation accepted. Sign-in completed.');
                 }
             } catch (DomainException $exception) {
                 return redirect()
                     ->to(route_url('invitations.accept', $inviteToken))
+                    ->withCookies()
                     ->with('warning', $exception->getMessage());
             }
         }
 
         if ($redirect !== null) {
-            return redirect()->to($redirect)->with('success', ui_locale() === 'it' ? 'Accesso completato.' : 'Signed in successfully.');
+            return redirect()->to($redirect)->withCookies()->with('success', ui_locale() === 'it' ? 'Accesso completato.' : 'Signed in successfully.');
         }
 
         $activeHousehold = $this->householdContext->activeHousehold();
@@ -72,10 +76,11 @@ final class AuthController extends BaseController
         if ($activeHousehold !== null) {
             return redirect()
                 ->to(route_url('households.dashboard', $activeHousehold['household_slug']))
+                ->withCookies()
                 ->with('success', ui_locale() === 'it' ? 'Accesso completato.' : 'Signed in successfully.');
         }
 
-        return redirect()->to(route_url('households.index'))->with('success', ui_locale() === 'it' ? 'Accesso completato.' : 'Signed in successfully.');
+        return redirect()->to(route_url('households.index'))->withCookies()->with('success', ui_locale() === 'it' ? 'Accesso completato.' : 'Signed in successfully.');
     }
 
     public function register(): string
@@ -243,7 +248,7 @@ final class AuthController extends BaseController
     {
         service('sessionAuth')->logout();
 
-        return redirect()->to(route_url('home'))->with('info', 'Logout completato.');
+        return redirect()->to(route_url('home'))->withCookies()->with('info', 'Logout completato.');
     }
 
     private function consumeIntendedUrl(): ?string

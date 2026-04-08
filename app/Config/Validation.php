@@ -162,6 +162,14 @@ class Validation extends BaseConfig
     /**
      * @var array<string, list<string>|string>
      */
+    public array $accountDelete = [
+        'current_password' => 'required|max_length[255]',
+        'confirmation_phrase' => 'required|max_length[32]',
+    ];
+
+    /**
+     * @var array<string, list<string>|string>
+     */
     public array $householdUpdate = [
         'name' => 'required|min_length[3]|max_length[120]',
         'description' => 'permit_empty|max_length[1000]',

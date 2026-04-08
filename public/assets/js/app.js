@@ -9,6 +9,23 @@
     const slideOvers = document.querySelectorAll('[data-slide-over]');
     const themeKey = 'familyjam-theme';
     const themeNavbarSelectors = ['.main-header.navbar'];
+    const canPersistThemePreference = document.body.dataset.consentPreferences === 'true' || document.body.dataset.userAuthenticated === 'true';
+
+    const readStoredTheme = () => {
+        if (!canPersistThemePreference) {
+            return null;
+        }
+
+        return localStorage.getItem(themeKey);
+    };
+
+    const writeStoredTheme = (theme) => {
+        if (!canPersistThemePreference) {
+            return;
+        }
+
+        localStorage.setItem(themeKey, theme);
+    };
 
     const applyTheme = (theme) => {
         const resolvedTheme = theme === 'system'
@@ -30,7 +47,7 @@
     };
 
     const updateThemeToggleLabels = () => {
-        const storedTheme = localStorage.getItem(themeKey) || 'system';
+        const storedTheme = readStoredTheme() || document.body.dataset.themePreference || 'system';
         const locale = root.lang === 'it' ? 'it' : 'en';
         const labels = {
             en: { dark: 'Dark', light: 'Light', system: 'System', prefix: 'Theme' },
@@ -52,17 +69,21 @@
     };
 
     const setTheme = (theme) => {
-        localStorage.setItem(themeKey, theme);
+        writeStoredTheme(theme);
         applyTheme(theme);
         updateThemeToggleLabels();
     };
 
-    const storedTheme = localStorage.getItem(themeKey);
+    if (!canPersistThemePreference) {
+        localStorage.removeItem(themeKey);
+    }
+
+    const storedTheme = readStoredTheme();
     const fallbackTheme = document.body.dataset.themePreference || 'system';
     const activeTheme = fallbackTheme !== 'system' ? fallbackTheme : (storedTheme || fallbackTheme);
 
-    if (activeTheme) {
-        localStorage.setItem(themeKey, activeTheme);
+    if (activeTheme && canPersistThemePreference) {
+        writeStoredTheme(activeTheme);
     }
 
     applyTheme(activeTheme);
@@ -70,14 +91,14 @@
 
     document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
         toggle.addEventListener('click', () => {
-            const current = localStorage.getItem(themeKey) || 'system';
+            const current = readStoredTheme() || document.body.dataset.themePreference || 'system';
             const next = current === 'dark' ? 'light' : current === 'light' ? 'system' : 'dark';
             setTheme(next);
         });
     });
 
     window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
-        const currentTheme = localStorage.getItem(themeKey) || document.body.dataset.themePreference || 'system';
+        const currentTheme = readStoredTheme() || document.body.dataset.themePreference || 'system';
 
         if (currentTheme === 'system') {
             applyTheme('system');

@@ -324,7 +324,7 @@ $oldSplits = old('splits');
             </div>
         </div>
 
-        <div class="hero__actions">
+        <div class="form-actions">
             <button class="button button--secondary" type="button" data-expense-step-back><?= esc(ui_text('expense.step.back')) ?></button>
             <button class="button button--primary" type="submit"><?= esc(ui_text($isEdit ? 'expense.step.submit.update' : 'expense.step.submit.create')) ?></button>
             <a class="button button--secondary" href="<?= route_url('expenses.index', $identifier) ?>"><?= esc(ui_locale() === 'it' ? 'Annulla' : 'Cancel') ?></a>

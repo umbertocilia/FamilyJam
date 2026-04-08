@@ -8,6 +8,11 @@ use CodeIgniter\Router\RouteCollection;
 $routes->setAutoRoute(false);
 
 $routes->get('/', 'Web\HomeController::index', ['as' => 'home']);
+$routes->get('privacy-policy', 'Web\LegalController::privacy', ['as' => 'legal.privacy']);
+$routes->get('cookie-policy', 'Web\LegalController::cookies', ['as' => 'legal.cookies']);
+$routes->post('cookie-consent/essential-only', 'Web\LegalController::essentialOnly', ['as' => 'legal.cookies.essential']);
+$routes->post('cookie-consent/accept-all', 'Web\LegalController::acceptAll', ['as' => 'legal.cookies.accept_all']);
+$routes->post('cookie-consent/preferences', 'Web\LegalController::savePreferences', ['as' => 'legal.cookies.save']);
 
 $routes->group('', ['filter' => ['guest']], static function (RouteCollection $routes): void {
     $routes->get('login', 'Web\Auth\AuthController::login', ['as' => 'auth.login']);
@@ -36,6 +41,7 @@ $routes->group('', ['filter' => ['auth']], static function (RouteCollection $rou
 
     $routes->get('profile', 'Web\Auth\ProfileController::edit', ['as' => 'profile.edit']);
     $routes->post('profile', 'Web\Auth\ProfileController::update', ['as' => 'profile.update']);
+    $routes->post('profile/delete', 'Web\Auth\ProfileController::destroy', ['as' => 'profile.delete']);
 
     $routes->get('households', 'Web\Households\HouseholdController::index', ['as' => 'households.index']);
     $routes->get('households/create', 'Web\Households\HouseholdController::create', ['as' => 'households.create']);

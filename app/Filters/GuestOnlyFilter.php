@@ -12,12 +12,12 @@ final class GuestOnlyFilter implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
-        if (session()->get('auth.user_id') === null) {
-            return null;
-        }
+        $sessionAuth = service('sessionAuth');
 
-        if (! service('sessionAuth')->hasValidSession()) {
-            service('sessionAuth')->logout();
+        if (! $sessionAuth->hasValidSession()) {
+            if (session()->get('auth.user_id') !== null) {
+                $sessionAuth->logout(false);
+            }
 
             return null;
         }

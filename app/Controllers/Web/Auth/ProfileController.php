@@ -53,4 +53,42 @@ final class ProfileController extends BaseController
 
         return redirect()->to(route_url('profile.edit'))->with('success', ui_text('profile.updated'));
     }
+
+    public function destroy(): RedirectResponse
+    {
+        if ($this->currentUserId === null) {
+            throw SecurityException::forDisallowedAction();
+        }
+
+        helper('ui');
+
+        $payload = $this->request->getPost([
+            'current_password',
+            'confirmation_phrase',
+        ]);
+
+        if (! $this->validateData($payload, config('Validation')->accountDelete)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $expectedPhrase = 'DELETE';
+
+        if (strtoupper(trim((string) ($payload['confirmation_phrase'] ?? ''))) !== $expectedPhrase) {
+            return redirect()->back()->withInput()->with('error', ui_text('profile.delete.confirm_invalid'));
+        }
+
+        try {
+            service('accountErasure')->eraseSelf(
+                $this->currentUserId,
+                (string) ($payload['current_password'] ?? ''),
+                service('request')->getLocale(),
+            );
+        } catch (DomainException $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
+        }
+
+        service('sessionAuth')->logout();
+
+        return redirect()->to(route_url('home'))->with('success', ui_text('profile.delete.completed'));
+    }
 }

@@ -27,6 +27,7 @@ use App\Services\Shopping\ShoppingListService;
 use App\Services\Authorization\HouseholdAuthorizationService;
 use App\Services\Authorization\RoleManagementService;
 use App\Services\Auth\AuthTokenService;
+use App\Services\Auth\AccountErasureService;
 use App\Services\Auth\EmailVerificationService;
 use App\Services\Auth\LoginThrottleService;
 use App\Services\Auth\OutboundEmailService;
@@ -42,6 +43,7 @@ use App\Services\Households\HouseholdManagementService;
 use App\Services\Households\HouseholdProvisioningService;
 use App\Services\Households\InvitationService;
 use App\Services\Households\MembershipService;
+use App\Services\Legal\PrivacyConsentService;
 use App\Services\Media\AvatarImageService;
 use App\Services\UI\AppShellService;
 use App\Services\UI\DashboardPreviewService;
@@ -96,6 +98,18 @@ class Services extends BaseService
         }
 
         return new AuthTokenService();
+    }
+
+    public static function accountErasure(bool $getShared = true): AccountErasureService
+    {
+        if ($getShared) {
+            /** @var AccountErasureService $service */
+            $service = static::getSharedInstance('accountErasure');
+
+            return $service;
+        }
+
+        return new AccountErasureService();
     }
 
     public static function appShell(bool $getShared = true): AppShellService
@@ -480,6 +494,18 @@ class Services extends BaseService
         }
 
         return new PinboardCommentService();
+    }
+
+    public static function privacyConsent(bool $getShared = true): PrivacyConsentService
+    {
+        if ($getShared) {
+            /** @var PrivacyConsentService $service */
+            $service = static::getSharedInstance('privacyConsent');
+
+            return $service;
+        }
+
+        return new PrivacyConsentService();
     }
 
     public static function shoppingListService(bool $getShared = true): ShoppingListService

@@ -1,5 +1,11 @@
 :root {
     --fj-shell-max: 1320px;
+    --fj-form-max: 1100px;
+    --fj-space-1: 0.5rem;
+    --fj-space-2: 0.75rem;
+    --fj-space-3: 1rem;
+    --fj-space-4: 1.5rem;
+    --fj-space-5: 2rem;
 }
 
 html,
@@ -244,6 +250,13 @@ body.dark-mode .alert-danger {
     padding-bottom: 1rem;
 }
 
+.content > .container-fluid > .panel,
+.content > .container-fluid > .content-grid,
+.content > .container-fluid > .summary-grid,
+.content > .container-fluid > form.stack {
+    margin-bottom: 1.25rem;
+}
+
 .main-footer {
     margin: 0 auto;
 }
@@ -427,7 +440,7 @@ body.dark-mode .alert-danger {
 .shopping-item-card,
 .notification-feed-card,
 .empty-state.card {
-    padding: 1.25rem;
+    padding: 1.5rem;
 }
 
 .panel--hero {
@@ -468,11 +481,35 @@ body.dark-mode .alert-danger {
 .stack,
 .section-heading {
     display: grid;
-    gap: 0.5rem;
+    gap: 0.65rem;
 }
 
 .section-heading {
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.section-heading h2,
+.section-heading h3,
+.section-heading p,
+.section-heading__eyebrow,
+.eyebrow {
+    margin: 0;
+}
+
+.section-heading__eyebrow,
+.eyebrow {
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #6c757d;
+}
+
+.hero__lead,
+.inline-hint {
+    margin: 0;
+    line-height: 1.65;
+    color: #6c757d;
 }
 
 .row-card,
@@ -502,8 +539,8 @@ body.dark-mode .alert-danger {
 }
 
 .button {
-    min-height: calc(2.25rem + 2px);
-    padding: 0.375rem 0.75rem;
+    min-height: 2.85rem;
+    padding: 0.6rem 0.95rem;
     background: #6c757d;
     border: 1px solid #6c757d;
     color: #fff;
@@ -566,7 +603,8 @@ body.dark-mode .alert-danger {
 .auth-form,
 .profile-form {
     display: grid;
-    gap: 1.5rem;
+    gap: 1.75rem;
+    max-width: var(--fj-form-max);
 }
 
 .auth-form--compact {
@@ -575,7 +613,7 @@ body.dark-mode .alert-danger {
 
 .form-grid,
 .detail-grid {
-    gap: 1.25rem;
+    gap: 1.5rem;
     align-items: start;
 }
 
@@ -585,7 +623,7 @@ body.dark-mode .alert-danger {
 
 .field > span {
     color: #495057;
-    font-size: 0.875rem;
+    font-size: 0.92rem;
     font-weight: 700;
     letter-spacing: 0.01em;
 }
@@ -596,11 +634,14 @@ body.dark-mode .alert-danger {
 .field .form-control,
 .field .custom-select {
     width: 100%;
+    min-height: 3rem;
+    border-radius: 0.5rem;
 }
 
 .field textarea {
     min-height: 7.5rem;
     resize: vertical;
+    padding-top: 0.75rem;
 }
 
 .field-hint,
@@ -612,12 +653,12 @@ body.dark-mode .alert-danger {
 
 .field-hint {
     color: #6c757d;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
 }
 
 .field__error {
     color: #dc3545;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     font-weight: 600;
 }
 
@@ -640,6 +681,8 @@ body.dark-mode .alert-danger {
 
 .checkbox-row span {
     min-width: 0;
+    display: grid;
+    gap: 0.2rem;
 }
 
 .toggle-grid,
@@ -650,13 +693,17 @@ body.dark-mode .alert-danger {
 
 .section-stack {
     display: grid;
-    gap: 1.5rem;
+    gap: 1.75rem;
 }
 
 .form-section,
 .expense-form-section {
     display: grid;
     gap: 1.25rem;
+    padding: 1.25rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.85rem;
+    background: #fff;
 }
 
 .form-section__header {
@@ -672,7 +719,8 @@ body.dark-mode .alert-danger {
     flex-wrap: wrap;
     gap: 0.75rem;
     align-items: center;
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.25rem;
 }
 
 .hero__actions form,
@@ -688,7 +736,7 @@ body.dark-mode .alert-danger {
 .expense-stepper {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.75rem;
+    gap: 0.9rem;
 }
 
 .expense-stepper__item {
@@ -696,7 +744,7 @@ body.dark-mode .alert-danger {
     align-items: center;
     gap: 0.75rem;
     width: 100%;
-    padding: 0.875rem 1rem;
+    padding: 1rem 1.05rem;
     border: 1px solid #dee2e6;
     border-radius: 0.75rem;
     background: #fff;
@@ -739,7 +787,7 @@ body.dark-mode .alert-danger {
     display: grid;
     gap: 1rem;
     min-width: 0;
-    padding: 1rem;
+    padding: 1.1rem;
     border: 1px solid #dee2e6;
     border-radius: 0.75rem;
     background: #fff;
@@ -803,6 +851,13 @@ body.dark-mode .alert-danger {
     white-space: nowrap;
 }
 
+.content-grid > .panel > .auth-form,
+.content-grid > .panel > .profile-form,
+.panel > .auth-form,
+.panel > .profile-form {
+    max-width: none;
+}
+
 .profile-form .list-group-item {
     padding: 0.875rem 1rem;
 }
@@ -818,6 +873,13 @@ body.dark-mode .expense-member-card__header p {
     color: #d1d5db;
 }
 
+body.dark-mode .eyebrow,
+body.dark-mode .section-heading__eyebrow,
+body.dark-mode .hero__lead,
+body.dark-mode .inline-hint {
+    color: #c7ced6;
+}
+
 body.dark-mode .field-hint {
     color: #c7ced6;
 }
@@ -828,7 +890,9 @@ body.dark-mode .field__error {
 
 body.dark-mode .checkbox-row,
 body.dark-mode .expense-stepper__item,
-body.dark-mode .expense-member-card {
+body.dark-mode .expense-member-card,
+body.dark-mode .form-section,
+body.dark-mode .expense-form-section {
     background: #343a40;
     border-color: #4b5563;
     color: #f3f4f6;
@@ -927,4 +991,72 @@ body.dark-mode .expense-stepper__item.is-active {
     .profile-form .card-footer {
         padding: 1rem;
     }
+
+    .form-section,
+    .expense-form-section {
+        padding: 1rem;
+    }
+
+    .field input,
+    .field select,
+    .field textarea,
+    .field .form-control,
+    .field .custom-select {
+        min-height: 3.15rem;
+    }
+
+    .button,
+    .hero__actions .button,
+    .form-actions .button {
+        width: 100%;
+    }
+}
+
+.cookie-banner {
+    position: sticky;
+    bottom: 1rem;
+    z-index: 1040;
+    margin: 0 0 1rem;
+}
+
+.cookie-banner .card-title {
+    float: none;
+}
+
+.cookie-banner .btn {
+    white-space: nowrap;
+}
+
+.legal-page .card .lead {
+    max-width: 72rem;
+}
+
+.dark-mode .cookie-banner {
+    background-color: #343a40;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark-mode .cookie-banner .text-muted,
+.dark-mode .legal-page .text-muted {
+    color: #c2c7d0 !important;
+}
+
+.dark-mode .modal-content {
+    background-color: #343a40;
+    color: #f4f6f9;
+}
+
+.dark-mode .modal-header,
+.dark-mode .modal-footer {
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark-mode .modal .card {
+    background-color: #3f474e;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark-mode .modal .custom-control-label,
+.dark-mode .modal .card-title {
+    color: #f4f6f9;
 }

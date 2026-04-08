@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="<?= base_url('assets/css/app.css') ?>">
 </head>
 <?php $preferredTheme = is_array($currentUser ?? null) ? (string) ($currentUser['theme'] ?? 'system') : (string) (session('app.theme') ?? 'system'); ?>
-<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed <?= esc($pageClass ?? '') ?>" data-theme-preference="<?= esc($preferredTheme) ?>">
+<body class="hold-transition sidebar-mini layout-fixed layout-navbar-fixed layout-footer-fixed <?= esc($pageClass ?? '') ?>" data-theme-preference="<?= esc($preferredTheme) ?>" data-consent-preferences="<?= ! empty($privacyConsent['preferencesPersistAllowed']) ? 'true' : 'false' ?>" data-user-authenticated="<?= $currentUserId === null ? 'false' : 'true' ?>">
     <div class="wrapper">
         <div class="preloader flex-column justify-content-center align-items-center">
             <img class="animation__shake" src="<?= base_url('assets/images/FamilyJamLogo.png') ?>" alt="FamilyJam" height="72" width="72">
@@ -36,6 +36,7 @@
         </div>
 
         <?= $this->include('partials/footer') ?>
+        <?= $this->include('partials/legal/cookie_consent') ?>
         <aside class="control-sidebar control-sidebar-dark"></aside>
     </div>
 

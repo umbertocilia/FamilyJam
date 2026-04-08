@@ -12,20 +12,24 @@ use CodeIgniter\Session\Session;
 
 final class SessionAuthService
 {
+    private const REMEMBER_COOKIE = 'familyjam_remember';
+    private const REMEMBER_TOKEN_TYPE = 'remember_login';
+    private const REMEMBER_LIFETIME_DAYS = 30;
+
     public function __construct(
         private readonly ?UserModel $userModel = null,
         private readonly ?Session $session = null,
         private readonly ?LoginThrottleService $loginThrottleService = null,
         private readonly ?HouseholdContextService $householdContextService = null,
         private readonly ?AuditLogService $auditLogService = null,
+        private readonly ?AuthTokenService $authTokenService = null,
     ) {
     }
 
-    public function attempt(string $email, string $password): ?array
+    public function attempt(string $email, string $password, bool $remember = false): ?array
     {
         $normalizedEmail = strtolower(trim($email));
         $userModel = $this->userModel ?? new UserModel();
-        $session = $this->session ?? session();
         $loginThrottleService = $this->loginThrottleService ?? service('loginThrottle');
         $auditLogService = $this->auditLogService ?? service('auditLogger');
         $request = service('request');
@@ -61,12 +65,8 @@ final class SessionAuthService
             'last_login_at' => $timestamp,
         ]);
 
-        $session->regenerate(true);
-        $session->set('auth.user_id', (int) $user['id']);
-        $session->set('auth.logged_in_at', $timestamp);
-        $session->set('auth.fingerprint', $this->fingerprintForCurrentRequest());
-        $session->set('app.locale', in_array((string) ($user['locale'] ?? ''), ['it', 'en'], true) ? (string) $user['locale'] : 'en');
-        $session->set('app.theme', in_array((string) ($user['theme'] ?? ''), ['system', 'light', 'dark'], true) ? (string) $user['theme'] : 'system');
+        $this->establishSession($user, $timestamp);
+        $this->syncRememberCookie((int) $user['id'], $remember);
         $loginThrottleService->clear($normalizedEmail, $ipAddress);
 
         $auditLogService->record(
@@ -74,15 +74,16 @@ final class SessionAuthService
             entityType: 'user',
             entityId: (int) $user['id'],
             actorUserId: (int) $user['id'],
+            metadata: ['remember_me' => $remember],
         );
 
         return $userModel->find((int) $user['id']);
     }
 
-    public function logout(): void
+    public function logout(bool $revokeRemember = true): void
     {
         $session = $this->session ?? session();
-        $userId = $this->currentUserId();
+        $userId = $this->currentSessionUserId();
 
         if ($userId !== null) {
             ($this->auditLogService ?? service('auditLogger'))->record(
@@ -93,6 +94,10 @@ final class SessionAuthService
             );
         }
 
+        if ($revokeRemember && $userId !== null) {
+            ($this->authTokenService ?? service('authToken'))->revokeAll($userId, self::REMEMBER_TOKEN_TYPE);
+        }
+
         $session->remove([
             'auth.user_id',
             'auth.logged_in_at',
@@ -101,15 +106,25 @@ final class SessionAuthService
             'auth.pending_invitation_token',
             'app.locale',
             'app.theme',
+            'app.active_household',
         ]);
 
         ($this->householdContextService ?? service('householdContext'))->clearActiveHousehold();
         $session->regenerate(true);
+
+        if ($revokeRemember) {
+            $this->clearRememberCookie();
+        }
     }
 
     public function currentUserId(): ?int
     {
-        $userId = ($this->session ?? session())->get('auth.user_id');
+        $session = $this->session ?? session();
+        $userId = $session->get('auth.user_id');
+
+        if ($userId === null && $this->restoreRememberedSession()) {
+            $userId = $session->get('auth.user_id');
+        }
 
         return $userId === null ? null : (int) $userId;
     }
@@ -127,13 +142,13 @@ final class SessionAuthService
 
     public function hasValidSession(): bool
     {
-        $userId = $this->currentUserId();
+        $sessionUserId = $this->currentSessionUserId();
 
-        if ($userId === null) {
-            return false;
+        if ($sessionUserId === null) {
+            return $this->restoreRememberedSession();
         }
 
-        $user = ($this->userModel ?? new UserModel())->findActiveById($userId);
+        $user = ($this->userModel ?? new UserModel())->findActiveById($sessionUserId);
 
         if ($user === null) {
             return false;
@@ -160,6 +175,52 @@ final class SessionAuthService
         return true;
     }
 
+    public function restoreRememberedSession(): bool
+    {
+        $session = $this->session ?? session();
+
+        if ($session->get('auth.user_id') !== null) {
+            return true;
+        }
+
+        $rawToken = trim((string) service('request')->getCookie(self::REMEMBER_COOKIE));
+
+        if ($rawToken === '') {
+            return false;
+        }
+
+        $token = ($this->authTokenService ?? service('authToken'))->findValid($rawToken, self::REMEMBER_TOKEN_TYPE);
+
+        if ($token === null) {
+            $this->clearRememberCookie();
+
+            return false;
+        }
+
+        $user = ($this->userModel ?? new UserModel())->findActiveById((int) $token['user_id']);
+
+        if ($user === null) {
+            ($this->authTokenService ?? service('authToken'))->revokeAll((int) $token['user_id'], self::REMEMBER_TOKEN_TYPE);
+            $this->clearRememberCookie();
+
+            return false;
+        }
+
+        $timestamp = Time::now()->toDateTimeString();
+
+        $this->establishSession($user, $timestamp);
+        $this->syncRememberCookie((int) $user['id'], true);
+
+        ($this->auditLogService ?? service('auditLogger'))->record(
+            action: 'auth.login_remembered',
+            entityType: 'user',
+            entityId: (int) $user['id'],
+            actorUserId: (int) $user['id'],
+        );
+
+        return true;
+    }
+
     private function fingerprintForCurrentRequest(): string
     {
         $request = service('request');
@@ -170,5 +231,58 @@ final class SessionAuthService
         }
 
         return hash('sha256', $agentString);
+    }
+
+    /**
+     * @param array<string, mixed> $user
+     */
+    private function establishSession(array $user, string $timestamp): void
+    {
+        $session = $this->session ?? session();
+        $session->regenerate(true);
+        $session->set('auth.user_id', (int) $user['id']);
+        $session->set('auth.logged_in_at', $timestamp);
+        $session->set('auth.fingerprint', $this->fingerprintForCurrentRequest());
+        $session->set('app.locale', in_array((string) ($user['locale'] ?? ''), ['it', 'en'], true) ? (string) $user['locale'] : 'en');
+        $session->set('app.theme', in_array((string) ($user['theme'] ?? ''), ['system', 'light', 'dark'], true) ? (string) $user['theme'] : 'system');
+    }
+
+    private function currentSessionUserId(): ?int
+    {
+        $userId = ($this->session ?? session())->get('auth.user_id');
+
+        return $userId === null ? null : (int) $userId;
+    }
+
+    private function syncRememberCookie(int $userId, bool $remember): void
+    {
+        $tokenService = $this->authTokenService ?? service('authToken');
+
+        if (! $remember) {
+            $tokenService->revokeAll($userId, self::REMEMBER_TOKEN_TYPE);
+            $this->clearRememberCookie();
+
+            return;
+        }
+
+        $expiresAt = Time::now()->addDays(self::REMEMBER_LIFETIME_DAYS)->toDateTimeString();
+        $issued = $tokenService->issue($userId, self::REMEMBER_TOKEN_TYPE, $expiresAt);
+
+        service('response')->setCookie(
+            self::REMEMBER_COOKIE,
+            (string) $issued['token'],
+            60 * 60 * 24 * self::REMEMBER_LIFETIME_DAYS,
+            '',
+            '/',
+            '',
+            true,
+            true,
+            'Lax',
+        );
+    }
+
+    private function clearRememberCookie(): void
+    {
+        service('response')->deleteCookie(self::REMEMBER_COOKIE, '', '/');
     }
 }

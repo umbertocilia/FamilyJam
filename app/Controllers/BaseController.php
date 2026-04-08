@@ -69,6 +69,7 @@ abstract class BaseController extends Controller
             'currentUser'     => $this->currentUser,
             'formErrors'      => $this->session->getFlashdata('errors') ?? [],
             'appShell'        => $this->appShell->sharedViewData($this->activeHousehold, $this->currentUserId),
+            'privacyConsent'  => service('privacyConsent')->viewContext($this->currentUserId),
         ], $data));
     }
 

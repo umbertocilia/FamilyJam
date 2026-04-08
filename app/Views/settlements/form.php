@@ -128,7 +128,7 @@ $prefill = $settlementPrefill ?? [];
                 </section>
             </div>
 
-            <div class="hero__actions">
+            <div class="form-actions">
                 <button class="button button--primary" type="submit"><?= esc(ui_locale() === 'it' ? 'Registra rimborso' : 'Record settlement') ?></button>
                 <a class="button button--secondary" href="<?= route_url('settlements.index', $identifier) ?>"><?= esc(ui_text('common.cancel')) ?></a>
             </div>

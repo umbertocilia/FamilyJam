@@ -28,7 +28,7 @@ $inviteToken = is_string($inviteToken ?? null) ? (string) $inviteToken : '';
     <div class="row">
         <div class="col-7">
             <div class="icheck-primary">
-                <input type="checkbox" id="remember">
+                <input type="checkbox" id="remember" name="remember" value="1" <?= old('remember') ? 'checked' : '' ?>>
                 <label for="remember"><?= esc(ui_locale() === 'it' ? 'Ricordami' : 'Remember me') ?></label>
             </div>
         </div>
